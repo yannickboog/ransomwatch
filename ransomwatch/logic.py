@@ -76,7 +76,7 @@ class RansomWatchLogic:
             company = victim.get("victim", "Unknown")
             group = victim.get("group", "Unknown")
             date = victim.get("discovered", "Unknown")
-            description = victim.get("description", "No details")
+            description = victim.get("description") or "No details"
             website = victim.get("website", "No website")
             country = victim.get("country", "Unknown")
             
