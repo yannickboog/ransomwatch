@@ -31,9 +31,11 @@ class RansomWatchAPI:
                  min_interval: float = MIN_REQUEST_INTERVAL):
         self.session = requests.Session()
         self.timeout = timeout
+
+        clean_token = api_token.strip()
         self.session.headers.update({
             "User-Agent": USER_AGENT,
-            "X-API-KEY": api_token
+            "X-API-KEY": clean_token
         })
         
         self.rate_limiter = RateLimiter(
