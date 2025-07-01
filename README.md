@@ -3,15 +3,14 @@
 A Python tool for ransomware threat intelligence and security research.
 
 ![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)
+![PyPI version](https://img.shields.io/pypi/v/ransomwatch.svg)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## 🚀 Quick Start
 
 ```bash
-# Install
-git clone https://github.com/yannickboog/ransomwatch.git
-cd ransomwatch
-pip install -e .
+# Install from PyPI (recommended)
+pip install ransomwatch
 
 # Set API token (get from ransomware.live)
 export RANSOMWATCH_API_TOKEN="your-token-here"
@@ -85,7 +84,13 @@ ransomwatch --json groups | jq '.groups[] | select(.victims > 100)'
 
 ## Installation Methods
 
-### Method 1: Full Install
+### Method 1: PyPI Install (Recommended)
+```bash
+pip install ransomwatch
+ransomwatch --help
+```
+
+### Method 2: Development Install
 ```bash
 git clone https://github.com/yannickboog/ransomwatch.git
 cd ransomwatch
@@ -93,7 +98,7 @@ pip install -e .
 ransomwatch --help
 ```
 
-### Method 2: Direct Usage
+### Method 3: Direct Usage
 ```bash
 git clone https://github.com/yannickboog/ransomwatch.git
 cd ransomwatch
