@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ransomwatch"
+version = "1.0.0"
+description = "Ransomware Intelligence Tool - Designed for threat intelligence, security research, and situational awareness"
+authors = [
+    {name = "Yannick Boog", email = "security@yannick.xyz"}
+]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: System :: Monitoring",
+]
+keywords = ["ransomware", "security", "threat-intelligence", "cybersecurity"]
+
+dependencies = [
+    "requests>=2.31.0",
+    "urllib3>=1.26.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=21.0",
+    "flake8>=3.8",
+]
+
+[project.urls]
+Homepage = "https://github.com/yannickboog/ransomwatch"
+"Bug Reports" = "https://github.com/yannickboog/ransomwatch/issues"
+"Source" = "https://github.com/yannickboog/ransomwatch"
+
+[project.scripts]
+ransomwatch = "ransomwatch.cli:main"
+
+[project.entry-points."console_scripts"]
+ransomwatch = "ransomwatch.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["ransomwatch*"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
