@@ -130,13 +130,49 @@ class RansomWatchLogic:
             print(f"\n🎯 TTPs (Tactics, Techniques, Procedures):")
             ttps = group["ttps"]
             if isinstance(ttps, list):
-                valid_ttps = [ttp for ttp in ttps if ttp]
-                for i, ttp in enumerate(valid_ttps[:5], 1):
-                    print(f"    {i}. {ttp}")
-                if len(valid_ttps) > 5:
-                    print(f"    ... and {len(valid_ttps) - 5} more")
+                displayed_ttps = ttps[:10]
+                for i, ttp in enumerate(displayed_ttps, 1):
+                    try:
+                        if isinstance(ttp, dict):
+                            tactic_name = ttp.get("tactic_name", "Unknown")
+                            tactic_id = ttp.get("tactic_id", "")
+                            print(f"    {i}. {tactic_name} ({tactic_id})")
+                            techniques = ttp.get("techniques", [])
+                            if isinstance(techniques, list):
+                                displayed_techniques = techniques[:5]
+                                for tech in displayed_techniques:
+                                    try:
+                                        if isinstance(tech, dict):
+                                            tech_name = tech.get("technique_name", "Unknown")
+                                            tech_id = tech.get("technique_id", "")
+                                            details = tech.get("technique_details", "")
+                                            if details and isinstance(details, str):
+                                                shortened_details = shorten(details.strip(), width=100, placeholder="...")
+                                            else:
+                                                shortened_details = "No details available"
+                                            print(f"       - {tech_name} ({tech_id}): {shortened_details}")
+                                        else:
+                                            print(f"       - {str(tech)[:100]}...")
+                                    except Exception as e:
+                                        print(f"       - [Error displaying technique]")
+                                        logger.debug(f"TTP technique display error: {e}")
+                                if len(techniques) > 5:
+                                    print(f"       ... and {len(techniques) - 5} more techniques")
+                            else:
+                                print(f"       - {str(techniques)[:100]}...")
+                        else:
+                            print(f"    {i}. {str(ttp)[:100]}...")
+                    except Exception as e:
+                        print(f"    {i}. [Error displaying TTP]")
+                        logger.debug(f"TTP display error: {e}")
+                
+                if len(ttps) > 10:
+                    print(f"    ... and {len(ttps) - 10} more TTPs")
             else:
-                print(f"    └─ {ttps}")
+                try:
+                    print(f"    └─ {str(ttps)[:200]}...")
+                except Exception:
+                    print(f"    └─ [TTPs data format not supported]")
         
         if "tools" in group and group["tools"]:
             print(f"\n🛠️  Tools:")
