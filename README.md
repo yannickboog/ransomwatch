@@ -110,19 +110,58 @@ python3 -m ransomwatch --help
 
 1. Get token from [ransomware.live](https://ransomware.live)
 2. Set environment variable:
-   ```bash
-   export RANSOMWATCH_API_TOKEN="your-token"
-   ```
-3. For permanent setup:
-   ```bash
-   echo 'export RANSOMWATCH_API_TOKEN="your-token"' >> ~/.bashrc
-   ```
+
+### Linux/macOS
+
+#### Temporary (current session only)
+```bash
+export RANSOMWATCH_API_TOKEN="your-token"
+```
+
+#### For permanent setup on Linux/macOS:
+```bash
+echo 'export RANSOMWATCH_API_TOKEN="your-token"' >> ~/.bashrc
+```
+
+### Windows
+
+#### Temporary (current session only)
+**CMD:**
+```cmd
+set RANSOMWATCH_API_TOKEN=your-token
+```
+
+**PowerShell:**
+```powershell
+$env:RANSOMWATCH_API_TOKEN = "your-token"
+```
+
+#### Permanent (for all new sessions)
+**CMD - For current user:**
+```cmd
+setx RANSOMWATCH_API_TOKEN "your-token"
+```
+
+**CMD - For all users (as Administrator):**
+```cmd
+setx RANSOMWATCH_API_TOKEN "your-token" /M
+```
+
+**PowerShell - For current user:**
+```powershell
+[Environment]::SetEnvironmentVariable("RANSOMWATCH_API_TOKEN", "your-token", "User")
+```
+
+**PowerShell - For all users (as Administrator):**
+```powershell
+[Environment]::SetEnvironmentVariable("RANSOMWATCH_API_TOKEN", "your-token", "Machine")
+```
 
 ## Troubleshooting
 
 | Error | Solution |
 |-------|----------|
-| "No API token provided" | `export RANSOMWATCH_API_TOKEN="token"` |
+| "No API token provided" | Linux/macOS: `export RANSOMWATCH_API_TOKEN="token"`<br>Windows CMD: `set RANSOMWATCH_API_TOKEN=token`<br>Windows PowerShell: `$env:RANSOMWATCH_API_TOKEN = "token"` |
 | "Request timed out" | `ransomwatch --timeout 30 groups` |
 | "Invalid command" | Use: `groups`, `recent`, `info`, `stats` |
 
