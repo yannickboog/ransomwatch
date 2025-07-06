@@ -51,3 +51,6 @@ token.txt
 
 #Logs
 *.log 
+
+# Manuals
+Manuals/ 
