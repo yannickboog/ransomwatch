@@ -31,7 +31,6 @@ class RansomWatchLogic:
         
         print(f"\nRANSOMWARE GROUP ANALYSIS")
         print(f"Active Groups: {len(groups)}")
-        print(create_separator())
         
         sorted_groups = sorted(groups, key=lambda x: x.get("victims", 0), reverse=True)
         
@@ -61,7 +60,7 @@ class RansomWatchLogic:
                 if i < len(sorted_groups):
                     print()
         
-        print(create_separator())
+        print()
         total_victims = sum(group.get("victims", 0) for group in groups)
         print(f"SUMMARY: {len(groups)} Groups | {total_victims:,} Total Victims")
         
@@ -90,7 +89,6 @@ class RansomWatchLogic:
         
         print(f"\nRECENT RANSOMWARE INCIDENTS")
         print(f"Displaying: {len(victims)} most recent cases")
-        print(create_separator())
         
         description_width = max(30, term_width - 35)
         
@@ -131,7 +129,7 @@ class RansomWatchLogic:
                 if i < len(victims):
                     print()
         
-        print(create_separator())
+        print()
         print(f"TOTAL INCIDENTS DISPLAYED: {len(victims)}")
         return 0
     
@@ -144,7 +142,6 @@ class RansomWatchLogic:
         term_width = get_terminal_width()
         
         print(f"\nTHREAT ACTOR INTELLIGENCE REPORT")
-        print(create_separator(style="padded"))
         
         name = group.get("group", group_name)
         altname = group.get("altname", "")
@@ -289,7 +286,7 @@ class RansomWatchLogic:
                 if term_width >= 50:
                     print(f"  No detailed assessment available")
         
-        print(f"\n{create_separator(style='padded')}")
+        print()
         print(f"REPORT GENERATED: Intelligence Database Query Complete")
         return 0
     
@@ -304,7 +301,6 @@ class RansomWatchLogic:
             return 0
         
         print(f"\nRANSOMWARE THREAT LANDSCAPE STATISTICS")
-        print(create_separator(style="short"))
         
         groups = stats.get('groups', 0)
         victims = stats.get('victims', 0)
@@ -333,6 +329,6 @@ class RansomWatchLogic:
             
             print(f"  Overall Threat Activity: {activity_level}")
         
-        print(f"\n{create_separator(style='short')}")
+        print()
         print(f"ANALYSIS COMPLETE")
         return 0 
