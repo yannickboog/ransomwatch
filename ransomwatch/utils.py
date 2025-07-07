@@ -5,9 +5,10 @@ import logging
 import os
 import time
 import threading
-from typing import Dict, Optional, Any, Set, List
+from typing import Dict, Optional, Any, Set, List, Union
 from urllib.parse import urlparse
 from collections import deque
+import shutil
 
 logger = logging.getLogger(__name__)
 
@@ -299,4 +300,92 @@ def validate_api_response(data: Any, expected_field: str, expected_type=None) ->
         safe_log_debug(f"Expected type: {expected_type}, got: {type(field_data)}")
         return None
     
-    return field_data 
+    return field_data
+
+
+def get_terminal_width(min_width: int = 20, max_width: int = 120) -> int:
+    """Get current terminal width with safe fallbacks"""
+    try:
+        size = shutil.get_terminal_size(fallback=(80, 24))
+        width = size.columns
+        
+        if width < 30:
+            return max(min_width, width - 2)
+        
+        return max(min_width, min(width, max_width))
+    except Exception:
+        return 80
+
+
+def create_separator(char: str = "=", width: Optional[int] = None, style: str = "full") -> str:
+    """Create terminal separator line with adaptive width"""
+    if not isinstance(char, str) or len(char) != 1:
+        char = "="
+    
+    if width is None:
+        width = get_terminal_width()
+    
+    if width < 25:
+        if style == "full":
+            return char * max(10, width)
+        elif style == "padded":
+            return char * max(8, width - 2)
+        else:
+            return char * max(6, width // 2)
+    
+    if style == "padded":
+        width = max(15, width - 4)
+    elif style == "short":
+        width = max(15, int(width * 0.67))
+    
+    return char * width
+
+
+def format_title(title: str, width: Optional[int] = None) -> str:
+    """Format title with dynamic centering"""
+    if not isinstance(title, str):
+        title = str(title)
+    
+    if width is None:
+        width = get_terminal_width()
+    
+    if width < 25:
+        if len(title) > width:
+            return title[:max(5, width-3)] + "..."
+        return title
+    
+    if len(title) >= width - 4:
+        title = title[:width-7] + "..."
+    
+    return title.center(width)
+
+
+def create_box_line(content: str, width: Optional[int] = None, align: str = "left") -> str:
+    """Create box-style line with content alignment"""
+    if not isinstance(content, str):
+        content = str(content)
+    
+    if align not in ["left", "right", "center"]:
+        align = "left"
+    
+    if width is None:
+        width = get_terminal_width()
+    
+    if width < 20:
+        if len(content) > width:
+            return content[:max(5, width-3)] + "..."
+        return content
+    
+    content_width = width - 4
+    
+    if len(content) > content_width:
+        content = content[:content_width-3] + "..."
+    
+    if align == "center":
+        content = content.center(content_width)
+    elif align == "right":
+        content = content.rjust(content_width)
+    else:
+        content = content.ljust(content_width)
+    
+    return f"| {content} |" 
