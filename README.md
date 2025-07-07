@@ -18,7 +18,7 @@ export RANSOMWATCH_API_TOKEN="your-token-here"
 # Use it
 ransomwatch groups
 ransomwatch recent -l 10
-ransomwatch info --group lockbit
+ransomwatch info --group ransomhub
 ransomwatch stats
 ```
 
@@ -26,10 +26,10 @@ ransomwatch stats
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `groups` | List active ransomware groups | `ransomwatch groups` |
-| `recent` | Show recent victims | `ransomwatch recent -l 20` |
-| `info` | Get group details | `ransomwatch info --group akira` |
-| `stats` | Show statistics | `ransomwatch stats` |
+| `groups` | List active ransomware groups with risk levels | `ransomwatch groups` |
+| `recent` | Show recent ransomware incidents | `ransomwatch recent -l 20` |
+| `info` | Get detailed threat actor intelligence | `ransomwatch info --group akira` |
+| `stats` | Show threat landscape statistics | `ransomwatch stats` |
 
 ## Options
 
@@ -42,44 +42,97 @@ ransomwatch stats
 
 ## Output Examples
 
-### Groups
+### Ransomware Groups Analysis
 ```
-[+] Found 45 active groups:
-================================================================================
+RANSOMWARE GROUP ANALYSIS
+Active Groups: 271
+====================================
+  1. [CRITICAL] lockbit3
+     Victim Count: 2,016
 
- 1. 🔴 lockbit3
-    └─ Victims: 1,247
+  2. [CRITICAL] clop
+     Victim Count: 1,012
 
- 2. 🔴 alphv
-    └─ Also known as: blackcat
-    └─ Victims: 892
+  3. [CRITICAL] alphv
+     Alternative Name: blackcat
+     Victim Count: 731
+
+  4. [HIGH]     play
+     Victim Count: 93
+
+  5. [MEDIUM]   akira
+     Victim Count: 45
+
+  6. [LOW]      chaos
+     Victim Count: 10
+
+   ...
+
+====================================
+SUMMARY: 271 Groups | 8,234 Total Victims
+RISK BREAKDOWN: Critical: 15 | High: 28 | Medium: 84 | Low: 144
 ```
 
-### Recent Victims
+### Recent Ransomware Incidents
 ```
-[+] Recent victims (10):
-====================================================================================================
+RECENT RANSOMWARE INCIDENTS
+Displaying: 10 most recent cases
+====================================
+  1. VICTIM: ...
+     Threat Actor: lockbit3
+     Discovery Date: 2024-01-01 20:15
+     Location: United States
+     Website: www.example.com
+     Details: ...
 
- 1. ..... Corporation
-    ┌─ Group:     lockbit3
-    ├─ Date:      2024-01-15 14:30
-    ├─ Country:   United States
-    └─ Details:   Manufacturing company...
+  2. VICTIM: ...
+     Threat Actor: alphv
+     Discovery Date: 2023-01-01 08:15
+     Location: Canada
+     Details: ...
+
+   ...
+
+====================================
+TOTAL INCIDENTS DISPLAYED: 10
 ```
 
-## Automation
+### Threat Actor Intelligence Report
+```
+THREAT ACTOR INTELLIGENCE REPORT
+====================================
+PRIMARY IDENTIFIER: lockbit3
+THREAT CLASSIFICATION: CRITICAL
+CONFIRMED VICTIMS: 2,016
+
+OPERATIONAL TIMELINE:
+Initial Detection: 2019-09-01
+Most Recent Activity: 2024-01-15
+
+TACTICS, TECHNIQUES & PROCEDURES (TTPs):
+
+   ...
+
+====================================
+```
+
+## Automation & Integration
 
 ```bash
-# JSON output for scripts
-ransomwatch --json groups > groups.json
-ransomwatch --json recent -l 50 > victims.json
+# JSON output
+ransomwatch --json groups > threat_groups.json
+ransomwatch --json recent -l 100 > incidents.json
 
-# Daily reports
+# Daily threat intelligence reports
 DATE=$(date +%Y-%m-%d)
-ransomwatch --json stats > "stats_${DATE}.json"
+ransomwatch --json stats > "threat_landscape_${DATE}.json"
 
-# Integration with jq
-ransomwatch --json groups | jq '.groups[] | select(.victims > 100)'
+# Filter high-risk groups with jq
+ransomwatch --json groups | jq '.groups[] | select(.victims > 100) | {name: .group, victims: .victims, threat_level: "CRITICAL"}'
+
+# Generate reports
+ransomwatch groups > daily_threat_brief.txt
+ransomwatch recent -l 20 > recent_incidents.txt
 ```
 
 ## Installation Methods
