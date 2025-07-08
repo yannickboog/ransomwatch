@@ -9,8 +9,9 @@ A Python tool for ransomware threat intelligence and security research.
 ## 🚀 Quick Start
 
 ```bash
-# Install from PyPI (recommended)
+# Install/Update from PyPI (recommended)
 pip install ransomwatch
+pip install --upgrade ransomwatch
 
 # Set API token (get from ransomware.live)
 export RANSOMWATCH_API_TOKEN="your-token-here"
