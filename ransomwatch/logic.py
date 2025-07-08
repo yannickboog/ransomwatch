@@ -121,7 +121,7 @@ class RansomWatchLogic:
             else:
                 print(f"{i:3d}. VICTIM: {company}")
                 print(f"     Threat Actor: {group}")
-                print(f"     Discovery Date: {formatted_date} {formatted_time}".strip())
+                print(f"     Discovery Date: {formatted_date} {formatted_time}")
                 print(f"     Location: {country}")
                 if website:
                     print(f"     Website: {website}")
