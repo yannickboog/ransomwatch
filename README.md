@@ -236,4 +236,8 @@ MIT License - see LICENSE file for details.
 
 ---
 
+Source: Ransomware.live
+
+---
+
 **For legitimate security research and threat intelligence purposes only.**
