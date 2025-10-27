@@ -160,10 +160,34 @@ pip install -r requirements.txt
 python3 -m ransomwatch --help
 ```
 
+### Method 4: Docker
+```bash
+git clone https://github.com/yannickboog/ransomwatch.git
+cd ransomwatch
+
+cp .env.example .env
+
+docker build -t ransomwatch .
+docker run --env-file .env ransomwatch groups
+
+docker compose up
+```
+
 ## 🔑 API Token
 
 1. Get token from [ransomware.live](https://ransomware.live)
 2. Set environment variable:
+
+### Docker
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set your API token:
+```
+RANSOMWATCH_API_TOKEN=your-actual-token-here
+```
 
 ### Linux/macOS
 
@@ -221,7 +245,7 @@ setx RANSOMWATCH_API_TOKEN "your-token" /M
 
 ## Requirements
 
-- Python 3.8+
+- Python 3.8+ or Docker
 - API token from ransomware.live
 
 ## 💰 Support

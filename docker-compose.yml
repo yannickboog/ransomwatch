@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  ransomwatch:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ransomwatch:latest
+    container_name: ransomwatch
+    environment:
+      - RANSOMWATCH_API_TOKEN=${RANSOMWATCH_API_TOKEN}
+    env_file:
+      - .env
+    command: groups
+    restart: "no"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - ransomwatch-net
+
+networks:
+  ransomwatch-net:
+    driver: bridge
