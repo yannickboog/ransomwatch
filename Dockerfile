@@ -12,7 +12,7 @@ RUN pip wheel --no-cache-dir --no-deps --wheel-dir /build/wheels .
 FROM python:3.12-slim
 
 ARG VERSION=unknown
-LABEL maintainer="security@yannick.xyz"
+LABEL maintainer="Yannick Boog"
 LABEL description="Ransomware Intelligence Tool"
 LABEL version="${VERSION}"
 

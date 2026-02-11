@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ransomwatch"
-version = "1.4.0"
+version = "1.5.0"
 description = "Ransomware Intelligence Tool - Designed for threat intelligence, security research, and situational awareness"
 authors = [
-    {name = "Yannick Boog", email = "security@yannick.xyz"}
+    {name = "Yannick Boog"}
 ]
 readme = "README.md"
 license = "MIT"
@@ -31,6 +31,7 @@ keywords = ["ransomware", "security", "threat-intelligence", "cybersecurity"]
 dependencies = [
     "requests>=2.31.0",
     "urllib3>=1.26.0",
+    "rich>=13.0.0",
 ]
 
 [project.optional-dependencies]

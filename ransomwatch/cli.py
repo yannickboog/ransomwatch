@@ -6,6 +6,8 @@ import os
 import sys
 from typing import Optional
 
+from rich.console import Console
+
 from .api import RansomWatchAPI
 from .config import (
     DEFAULT_REQUESTS_PER_MINUTE,
@@ -14,6 +16,7 @@ from .config import (
     MIN_REQUEST_INTERVAL,
 )
 from .logic import RansomWatchLogic
+from .rendering import RichRenderer
 from .utils import (
     safe_log_debug,
     safe_log_error,
@@ -33,6 +36,8 @@ class RansomWatchCLI:
         self.parser = self._create_parser()
         self.api: Optional[RansomWatchAPI] = None
         self.logic: Optional[RansomWatchLogic] = None
+        self.console: Optional[Console] = None
+        self._show_status = False
 
     def _create_parser(self) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser(
@@ -55,6 +60,8 @@ class RansomWatchCLI:
                             help=f'Timeout in seconds (default: {DEFAULT_TIMEOUT})')
         parser.add_argument('--json', action='store_true',
                             help='Output as JSON')
+        parser.add_argument('--no-color', action='store_true',
+                            help='Disable colored output')
         parser.add_argument('--rate-limit-per-minute', type=int,
                             default=DEFAULT_REQUESTS_PER_MINUTE,
                             help=f'Max requests per minute (default: {DEFAULT_REQUESTS_PER_MINUTE})')
@@ -116,6 +123,12 @@ class RansomWatchCLI:
             return None
         return api_token
 
+    def _fetch(self, message: str, fetch_fn):
+        if self._show_status:
+            with self.console.status(f"[bold]{message}"):
+                return fetch_fn()
+        return fetch_fn()
+
     def run(self, args: Optional[list] = None) -> int:
         parsed_args = self.parser.parse_args(args)
         if not parsed_args.command:
@@ -130,6 +143,10 @@ class RansomWatchCLI:
         if not api_token:
             return 1
 
+        self.console = Console(no_color=parsed_args.no_color)
+        self._show_status = not parsed_args.json and not parsed_args.verbose
+        renderer = RichRenderer(self.console)
+
         self.api = RansomWatchAPI(
             api_token=api_token,
             timeout=parsed_args.timeout,
@@ -137,7 +154,7 @@ class RansomWatchCLI:
             requests_per_second=parsed_args.rate_limit_per_second,
             min_interval=parsed_args.min_interval,
         )
-        self.logic = RansomWatchLogic(json_output=parsed_args.json)
+        self.logic = RansomWatchLogic(renderer=renderer, json_output=parsed_args.json)
 
         if parsed_args.verbose:
             safe_log_debug(f"Using timeout: {parsed_args.timeout}s")
@@ -174,9 +191,7 @@ class RansomWatchCLI:
         if self.logic is None or self.api is None:
             safe_log_error("API or logic not initialized")
             return 1
-        if not self.logic.json_output:
-            safe_log_info("Fetching ransomware groups...")
-        data = self.api.get_groups()
+        data = self._fetch("Fetching ransomware groups...", self.api.get_groups)
         if data is None:
             return 1
         return self.logic.format_groups(data)
@@ -185,9 +200,7 @@ class RansomWatchCLI:
         if self.logic is None or self.api is None:
             safe_log_error("API or logic not initialized")
             return 1
-        if not self.logic.json_output:
-            safe_log_info(f"Fetching {limit} recent victims...")
-        data = self.api.get_recent_victims()
+        data = self._fetch(f"Fetching {limit} recent victims...", self.api.get_recent_victims)
         if data is None:
             return 1
         return self.logic.format_recent_victims(data, limit)
@@ -201,9 +214,7 @@ class RansomWatchCLI:
             safe_debug_input = group_name[:20].replace('<', '[').replace('>', ']').replace('&', '[AMP]')
             safe_log_debug(f"Invalid group name (truncated): {safe_debug_input}...")
             return 1
-        if not self.logic.json_output:
-            safe_log_info("Fetching group information...")
-        data = self.api.get_group_info(group_name)
+        data = self._fetch("Fetching group information...", lambda: self.api.get_group_info(group_name))
         if data is None:
             return 1
         return self.logic.format_group_info(data, group_name)
@@ -212,9 +223,7 @@ class RansomWatchCLI:
         if self.logic is None or self.api is None:
             safe_log_error("API or logic not initialized")
             return 1
-        if not self.logic.json_output:
-            safe_log_info("Fetching statistics...")
-        data = self.api.get_stats()
+        data = self._fetch("Fetching statistics...", self.api.get_stats)
         if data is None:
             return 1
         return self.logic.format_stats(data)
