@@ -47,9 +47,6 @@ Homepage = "https://github.com/yannickboog/ransomwatch"
 [project.scripts]
 ransomwatch = "ransomwatch.cli:main"
 
-[project.entry-points."console_scripts"]
-ransomwatch = "ransomwatch.cli:main"
-
 [tool.setuptools.packages.find]
 include = ["ransomwatch*"]
 

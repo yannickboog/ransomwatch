@@ -4,12 +4,17 @@ Designed for threat intelligence, security research, and situational awareness.
 Author: Yannick Boog
 """
 
+from importlib.metadata import version, PackageNotFoundError
+
 from .api import RansomWatchAPI
 from .logic import RansomWatchLogic
 from .cli import RansomWatchCLI, main
 from .utils import normalize_group_name, validate_api_response
 
-__version__ = "1.2.3"
+try:
+    __version__ = version("ransomwatch")
+except PackageNotFoundError:
+    __version__ = "unknown"
 __author__ = "Yannick Boog"
 __all__ = [
     "RansomWatchAPI",
