@@ -1,4 +1,4 @@
-"""Configuration settings"""
+from __future__ import annotations
 
 from importlib.metadata import version, PackageNotFoundError
 
@@ -13,7 +13,7 @@ API_BASE = "https://api-pro.ransomware.live"
 API_ENDPOINTS = {
     "groups": "/groups",
     "recent": "/victims/recent",
-    "stats": "/stats"
+    "stats": "/stats",
 }
 
 USER_AGENT = f"ransomwatch/{_version}"
@@ -26,4 +26,17 @@ DEFAULT_REQUESTS_PER_MINUTE = 30
 DEFAULT_REQUESTS_PER_SECOND = 2
 MIN_REQUEST_INTERVAL = 0.5
 MAX_REQUESTS_PER_MINUTE = 60
-RATE_LIMIT_WINDOW = 60 
+RATE_LIMIT_WINDOW = 60
+
+RISK_THRESHOLD_CRITICAL = 100
+RISK_THRESHOLD_HIGH = 50
+RISK_THRESHOLD_MEDIUM = 10
+
+MAX_DISPLAY_TTPS = 8
+MAX_DISPLAY_TECHNIQUES = 3
+
+TERMINAL_WIDTH_COMPACT = 50
+TERMINAL_WIDTH_NARROW = 60
+
+ACTIVITY_THRESHOLD_HIGH = 50
+ACTIVITY_THRESHOLD_MODERATE = 20

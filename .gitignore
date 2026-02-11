@@ -50,7 +50,8 @@ Thumbs.db
 token.txt
 
 #Logs
-*.log 
+*.log
 
-# Manuals
-Manuals/ 
+Manuals/
+
+tests/
