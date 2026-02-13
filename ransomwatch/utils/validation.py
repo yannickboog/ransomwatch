@@ -10,7 +10,7 @@ from .sanitization import (
     sanitize_exception_for_logging,
 )
 
-ALLOWED_COMMANDS: Set[str] = {"groups", "recent", "info", "stats"}
+ALLOWED_COMMANDS: Set[str] = {"groups", "recent", "info", "stats", "validate", "sectors", "csirt"}
 ALLOWED_GROUP_NAME_CHARS = re.compile(r'^[a-z0-9\-]{1,50}$')
 MIN_TIMEOUT = 1
 MAX_TIMEOUT = 300
@@ -116,6 +116,60 @@ def normalize_group_name(name: str) -> Optional[str]:
         safe_log_error("Normalized group name contains invalid characters")
         return None
     return normalized
+
+
+COUNTRY_CODE_PATTERN = re.compile(r'^[A-Z]{2}$')
+MIN_YEAR = 2000
+MAX_YEAR = 2100
+MIN_SEARCH_LENGTH = 2
+MAX_SEARCH_LENGTH = 200
+
+
+def validate_country_code(code: str) -> bool:
+    if not isinstance(code, str):
+        safe_log_error("Country code must be a string")
+        return False
+    if not COUNTRY_CODE_PATTERN.match(code):
+        safe_log_error("Country code must be a 2-letter ISO code (e.g. US, DE)")
+        return False
+    return True
+
+
+def validate_year(year: Any) -> bool:
+    if not isinstance(year, int):
+        safe_log_error("Year must be an integer")
+        return False
+    if year < MIN_YEAR or year > MAX_YEAR:
+        safe_log_error(f"Year must be between {MIN_YEAR} and {MAX_YEAR}")
+        return False
+    return True
+
+
+def validate_month(month: Any) -> bool:
+    if not isinstance(month, int):
+        safe_log_error("Month must be an integer")
+        return False
+    if month < 1 or month > 12:
+        safe_log_error("Month must be between 1 and 12")
+        return False
+    return True
+
+
+def validate_search_query(query: str) -> bool:
+    if not isinstance(query, str):
+        safe_log_error("Search query must be a string")
+        return False
+    stripped = query.strip()
+    if len(stripped) < MIN_SEARCH_LENGTH:
+        safe_log_error(f"Search query must be at least {MIN_SEARCH_LENGTH} characters")
+        return False
+    if len(stripped) > MAX_SEARCH_LENGTH:
+        safe_log_error(f"Search query cannot exceed {MAX_SEARCH_LENGTH} characters")
+        return False
+    if any(char in stripped for char in DANGEROUS_CHARS):
+        safe_log_error("Search query contains invalid characters")
+        return False
+    return True
 
 
 def validate_api_response(data: Any, expected_field: str, expected_type=None) -> Optional[Any]:

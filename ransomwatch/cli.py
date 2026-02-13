@@ -22,6 +22,7 @@ from .utils import (
     safe_log_error,
     safe_log_info,
     validate_command,
+    validate_country_code,
     validate_group_name,
     validate_limit,
     validate_timeout,
@@ -50,7 +51,9 @@ class RansomWatchCLI:
                 "  ransomwatch recent -l 20\n"
                 "  ransomwatch info --group lockbit3\n"
                 "  ransomwatch stats\n"
-                "  ransomwatch --rate-limit-per-minute 10 groups"
+                "  ransomwatch validate\n"
+                "  ransomwatch sectors\n"
+                "  ransomwatch csirt --country US"
             ),
         )
 
@@ -85,6 +88,14 @@ class RansomWatchCLI:
                                  help='Group name (case-insensitive)')
 
         subparsers.add_parser("stats", help="Show statistics")
+
+        subparsers.add_parser("validate", help="Validate API key")
+
+        subparsers.add_parser("sectors", help="List industry sectors")
+
+        csirt_parser = subparsers.add_parser("csirt", help="Get CSIRT/CERT info for a country")
+        csirt_parser.add_argument('--country', type=str, required=True,
+                                  help='ISO country code (e.g. US, DE)')
 
         return parser
 
@@ -178,6 +189,9 @@ class RansomWatchCLI:
             "recent": lambda: self._cmd_recent(args.limit),
             "info": lambda: self._cmd_info(args.group),
             "stats": self._cmd_stats,
+            "validate": self._cmd_validate,
+            "sectors": self._cmd_sectors,
+            "csirt": lambda: self._cmd_csirt(args.country),
         }
 
         handler = commands.get(args.command)
@@ -228,6 +242,34 @@ class RansomWatchCLI:
             return 1
         return self.logic.format_stats(data)
 
+    def _cmd_validate(self) -> int:
+        if self.logic is None or self.api is None:
+            safe_log_error("API or logic not initialized")
+            return 1
+        data = self._fetch("Validating API key...", self.api.validate_key)
+        if data is None:
+            return 1
+        return self.logic.format_validate(data)
+
+    def _cmd_sectors(self) -> int:
+        if self.logic is None or self.api is None:
+            safe_log_error("API or logic not initialized")
+            return 1
+        data = self._fetch("Fetching sectors...", self.api.get_sectors)
+        if data is None:
+            return 1
+        return self.logic.format_sectors(data)
+
+    def _cmd_csirt(self, country: str) -> int:
+        if self.logic is None or self.api is None:
+            safe_log_error("API or logic not initialized")
+            return 1
+        if not validate_country_code(country):
+            return 1
+        data = self._fetch(f"Fetching CSIRT info for {country}...", lambda: self.api.get_csirt(country))
+        if data is None:
+            return 1
+        return self.logic.format_csirt(data)
 
 def main(args: Optional[list] = None) -> int:
     cli = RansomWatchCLI()

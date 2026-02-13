@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
-from typing import Dict
+from typing import Any, Dict, List, Union
 
-from .models import RansomwareGroup, Stats, Victim
+from .models import CSIRT, RansomwareGroup, Sector, Stats, Victim
 from .rendering import RichRenderer
 from .utils import validate_api_response
 
@@ -54,3 +54,44 @@ class RansomWatchLogic:
         stats = Stats.from_dict(data)
         self.renderer.render_stats(stats)
         return 0
+
+    def format_validate(self, data: Union[Dict, Any]) -> int:
+        if not data or not isinstance(data, dict):
+            return 1
+        if self.json_output:
+            print(json.dumps(data, indent=2))
+            return 0
+        self.renderer.render_validate(data)
+        return 0
+
+    def format_sectors(self, data: Union[Dict, List, Any]) -> int:
+        if data is None:
+            return 1
+        if self.json_output:
+            print(json.dumps(data, indent=2))
+            return 0
+        if isinstance(data, dict):
+            sectors_raw = data.get("sectors", [])
+        elif isinstance(data, list):
+            sectors_raw = data
+        else:
+            return 1
+        if not isinstance(sectors_raw, list):
+            return 1
+        sectors = [Sector.from_dict(s) for s in sectors_raw]
+        self.renderer.render_sectors(sectors)
+        return 0
+
+    def format_csirt(self, data: Union[Dict, Any]) -> int:
+        if not data or not isinstance(data, dict):
+            return 1
+        if self.json_output:
+            print(json.dumps(data, indent=2))
+            return 0
+        results = data.get("results", [])
+        if not isinstance(results, list):
+            return 1
+        csirts = [CSIRT.from_dict(r) for r in results]
+        self.renderer.render_csirt(csirts, data.get("country", ""))
+        return 0
+

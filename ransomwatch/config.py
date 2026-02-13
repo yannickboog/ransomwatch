@@ -14,6 +14,17 @@ API_ENDPOINTS = {
     "groups": "/groups",
     "recent": "/victims/recent",
     "stats": "/stats",
+    "victims": "/victims/",
+    "victims_search": "/victims/search",
+    "victim": "/victim",
+    "iocs": "/iocs",
+    "negotiations": "/negotiations",
+    "ransomnotes": "/ransomnotes",
+    "sectors": "/listsectors",
+    "yara": "/yara",
+    "8k": "/8k",
+    "validate": "/validate",
+    "csirt": "/csirt",
 }
 
 USER_AGENT = f"ransomwatch/{_version}"

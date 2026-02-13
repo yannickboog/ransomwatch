@@ -9,7 +9,7 @@ from rich.text import Text
 from rich.tree import Tree
 
 from ..config import MAX_DISPLAY_TECHNIQUES, MAX_DISPLAY_TTPS
-from ..models import RansomwareGroup, RiskLevel, Stats, Victim
+from ..models import CSIRT, RansomwareGroup, RiskLevel, Sector, Stats, Victim
 
 
 RISK_STYLES = {
@@ -163,6 +163,75 @@ class RichRenderer:
         self.console.print()
         self.console.print(panel)
         self.console.print(f"\n[dim]ANALYSIS COMPLETE[/dim]")
+
+    def render_validate(self, data: dict) -> None:
+        valid = data.get("status") == "valid"
+        status_style = "bold green" if valid else "bold red"
+        status_text = "VALID" if valid else "INVALID"
+
+        lines = []
+        lines.append(f"[bold]API KEY STATUS:[/bold] [{status_style}]{status_text}[/{status_style}]")
+        for key, value in data.items():
+            if key != "status":
+                lines.append(f"  {key}: {value}")
+
+        panel = Panel(
+            "\n".join(lines),
+            title="[bold]API KEY VALIDATION[/bold]",
+            border_style="green" if valid else "red",
+            padding=(1, 2),
+        )
+        self.console.print()
+        self.console.print(panel)
+
+    def render_sectors(self, sectors: list[Sector]) -> None:
+        sorted_sectors = sorted(sectors, key=lambda s: s.victim_count, reverse=True)
+
+        table = Table(
+            title=f"INDUSTRY SECTORS\nTracked Sectors: {len(sectors)}",
+            show_header=True,
+            header_style="bold",
+            title_style="bold",
+            border_style="dim",
+        )
+        table.add_column("#", style="dim", width=4, justify="right")
+        table.add_column("Sector", style="bold")
+        table.add_column("Victims", justify="right")
+
+        for i, sector in enumerate(sorted_sectors, 1):
+            table.add_row(str(i), sector.name, f"{sector.victim_count:,}")
+
+        self.console.print()
+        self.console.print(table)
+
+    def render_csirt(self, csirts: list[CSIRT], country: str = "") -> None:
+        title_suffix = f" - {country}" if country else ""
+        table = Table(
+            title=f"CSIRT / CERT TEAMS{title_suffix}\nTeams: {len(csirts)}",
+            show_header=True,
+            header_style="bold",
+            title_style="bold",
+            border_style="dim",
+        )
+        table.add_column("#", style="dim", width=4, justify="right")
+        table.add_column("Team", style="bold")
+        table.add_column("Full Name", max_width=40)
+        table.add_column("Country", width=8)
+        table.add_column("Email", max_width=30)
+        table.add_column("Website", style="dim", max_width=30)
+
+        for i, csirt in enumerate(csirts, 1):
+            table.add_row(
+                str(i),
+                csirt.team,
+                shorten(csirt.full_name, width=40, placeholder="...") if csirt.full_name else "-",
+                csirt.country,
+                csirt.email or "-",
+                csirt.website or "-",
+            )
+
+        self.console.print()
+        self.console.print(table)
 
     def _render_ttps(self, group: RansomwareGroup) -> None:
         if not group.ttps:

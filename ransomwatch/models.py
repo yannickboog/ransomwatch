@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Union
+from typing import Any, List, Union
 
 from .config import (
     RISK_THRESHOLD_CRITICAL,
@@ -160,4 +160,245 @@ class Stats:
             victims=stats.get("victims", 0),
             press=stats.get("press", 0),
             last_update=data.get("last_update", ""),
+        )
+
+
+@dataclass
+class VictimDetail:
+    name: str
+    group: str
+    discovered: str
+    country: str
+    website: str
+    description: str
+    sector: str
+    url: str
+    screenshot: str
+    enrichment: dict = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, data: Any) -> VictimDetail:
+        if not isinstance(data, dict):
+            data = {}
+        enrichment = data.get("enrichment", {})
+        if not isinstance(enrichment, dict):
+            enrichment = {}
+        return cls(
+            name=data.get("victim", "Unknown"),
+            group=data.get("group", "Unknown"),
+            discovered=data.get("discovered", "Unknown"),
+            country=data.get("country", "Unknown"),
+            website=data.get("website", ""),
+            description=data.get("description") or "No details available",
+            sector=data.get("sector", ""),
+            url=data.get("url", ""),
+            screenshot=data.get("screenshot", ""),
+            enrichment=enrichment,
+        )
+
+
+@dataclass
+class IOCGroup:
+    group: str
+    ioc_types: List[str] = field(default_factory=list)
+    ioc_count: int = 0
+
+    @classmethod
+    def from_dict(cls, data: Any) -> IOCGroup:
+        if not isinstance(data, dict):
+            data = {}
+        ioc_types = data.get("ioc_types", [])
+        if not isinstance(ioc_types, list):
+            ioc_types = []
+        return cls(
+            group=data.get("group", "Unknown"),
+            ioc_types=ioc_types,
+            ioc_count=data.get("ioc_count", 0),
+        )
+
+
+@dataclass
+class IOC:
+    type: str
+    value: str
+    group: str
+    details: str
+
+    @classmethod
+    def from_dict(cls, data: Any) -> IOC:
+        if not isinstance(data, dict):
+            data = {}
+        return cls(
+            type=data.get("type", ""),
+            value=data.get("value", ""),
+            group=data.get("group", ""),
+            details=data.get("details", ""),
+        )
+
+
+@dataclass
+class NegotiationGroup:
+    group: str
+    chat_count: int = 0
+
+    @classmethod
+    def from_dict(cls, data: Any) -> NegotiationGroup:
+        if not isinstance(data, dict):
+            data = {}
+        return cls(
+            group=data.get("group", "Unknown"),
+            chat_count=data.get("chat_count", 0),
+        )
+
+
+@dataclass
+class NegotiationChat:
+    chat_id: str
+    group: str
+    metadata: dict = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, data: Any) -> NegotiationChat:
+        if not isinstance(data, dict):
+            data = {}
+        metadata = data.get("metadata", {})
+        if not isinstance(metadata, dict):
+            metadata = {}
+        return cls(
+            chat_id=data.get("chat_id", ""),
+            group=data.get("group", "Unknown"),
+            metadata=metadata,
+        )
+
+
+@dataclass
+class ChatMessage:
+    sender: str
+    message: str
+    timestamp: str
+    ransom_info: dict = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, data: Any) -> ChatMessage:
+        if not isinstance(data, dict):
+            data = {}
+        ransom_info = data.get("ransom_info", {})
+        if not isinstance(ransom_info, dict):
+            ransom_info = {}
+        return cls(
+            sender=data.get("sender", ""),
+            message=data.get("message", ""),
+            timestamp=data.get("timestamp", ""),
+            ransom_info=ransom_info,
+        )
+
+
+@dataclass
+class RansomNoteGroup:
+    group: str
+    note_count: int = 0
+
+    @classmethod
+    def from_dict(cls, data: Any) -> RansomNoteGroup:
+        if not isinstance(data, dict):
+            data = {}
+        return cls(
+            group=data.get("group", "Unknown"),
+            note_count=data.get("note_count", 0),
+        )
+
+
+@dataclass
+class CSIRT:
+    team: str
+    full_name: str
+    country: str
+    email: str
+    website: str
+    constituency: list = field(default_factory=list)
+    source: str = ""
+
+    @classmethod
+    def from_dict(cls, data: Any) -> CSIRT:
+        if not isinstance(data, dict):
+            data = {}
+        constituency = data.get("constituency", [])
+        if not isinstance(constituency, list):
+            constituency = []
+        return cls(
+            team=data.get("team", ""),
+            full_name=data.get("team-full", ""),
+            country=data.get("country", ""),
+            email=data.get("email", ""),
+            website=data.get("website") or "",
+            constituency=constituency,
+            source=data.get("source", ""),
+        )
+
+
+@dataclass
+class Sector:
+    name: str
+    victim_count: int = 0
+
+    @classmethod
+    def from_dict(cls, data: Any) -> Sector:
+        if not isinstance(data, dict):
+            data = {}
+        return cls(
+            name=data.get("sector", "Unknown"),
+            victim_count=data.get("count", 0),
+        )
+
+
+@dataclass
+class YaraGroup:
+    group: str
+    rule_count: int = 0
+
+    @classmethod
+    def from_dict(cls, data: Any) -> YaraGroup:
+        if not isinstance(data, dict):
+            data = {}
+        return cls(
+            group=data.get("group", "Unknown"),
+            rule_count=data.get("rule_count", 0),
+        )
+
+
+@dataclass
+class YaraRule:
+    group: str
+    filename: str
+    content: str
+
+    @classmethod
+    def from_dict(cls, data: Any) -> YaraRule:
+        if not isinstance(data, dict):
+            data = {}
+        return cls(
+            group=data.get("group", ""),
+            filename=data.get("filename", ""),
+            content=data.get("content", ""),
+        )
+
+
+@dataclass
+class Filing8K:
+    ticker: str
+    cik: str
+    filing_date: str
+    item_type: str
+    description: str
+
+    @classmethod
+    def from_dict(cls, data: Any) -> Filing8K:
+        if not isinstance(data, dict):
+            data = {}
+        return cls(
+            ticker=data.get("ticker", ""),
+            cik=data.get("cik", ""),
+            filing_date=data.get("filing_date", ""),
+            item_type=data.get("item_type", ""),
+            description=data.get("description", ""),
         )
