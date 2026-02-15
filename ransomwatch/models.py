@@ -111,7 +111,6 @@ class Victim:
     group: str
     discovered: str
     country: str
-    website: str
     description: str
 
     @classmethod
@@ -121,7 +120,6 @@ class Victim:
             group=data.get("group", "Unknown"),
             discovered=data.get("discovered", "Unknown"),
             country=data.get("country", "Unknown"),
-            website=data.get("website", ""),
             description=data.get("description") or "No details available",
         )
 
@@ -169,11 +167,8 @@ class VictimDetail:
     group: str
     discovered: str
     country: str
-    website: str
     description: str
     sector: str
-    url: str
-    screenshot: str
     enrichment: dict = field(default_factory=dict)
 
     @classmethod
@@ -188,11 +183,8 @@ class VictimDetail:
             group=data.get("group", "Unknown"),
             discovered=data.get("discovered", "Unknown"),
             country=data.get("country", "Unknown"),
-            website=data.get("website", ""),
             description=data.get("description") or "No details available",
             sector=data.get("sector", ""),
-            url=data.get("url", ""),
-            screenshot=data.get("screenshot", ""),
             enrichment=enrichment,
         )
 
@@ -207,13 +199,20 @@ class IOCGroup:
     def from_dict(cls, data: Any) -> IOCGroup:
         if not isinstance(data, dict):
             data = {}
-        ioc_types = data.get("ioc_types", [])
-        if not isinstance(ioc_types, list):
+        ioc_types_raw = data.get("ioc_types", {})
+        if isinstance(ioc_types_raw, dict):
+            ioc_types = list(ioc_types_raw.keys())
+            ioc_count = sum(ioc_types_raw.values())
+        elif isinstance(ioc_types_raw, list):
+            ioc_types = ioc_types_raw
+            ioc_count = 0
+        else:
             ioc_types = []
+            ioc_count = 0
         return cls(
             group=data.get("group", "Unknown"),
             ioc_types=ioc_types,
-            ioc_count=data.get("ioc_count", 0),
+            ioc_count=ioc_count,
         )
 
 
@@ -235,77 +234,6 @@ class IOC:
             details=data.get("details", ""),
         )
 
-
-@dataclass
-class NegotiationGroup:
-    group: str
-    chat_count: int = 0
-
-    @classmethod
-    def from_dict(cls, data: Any) -> NegotiationGroup:
-        if not isinstance(data, dict):
-            data = {}
-        return cls(
-            group=data.get("group", "Unknown"),
-            chat_count=data.get("chat_count", 0),
-        )
-
-
-@dataclass
-class NegotiationChat:
-    chat_id: str
-    group: str
-    metadata: dict = field(default_factory=dict)
-
-    @classmethod
-    def from_dict(cls, data: Any) -> NegotiationChat:
-        if not isinstance(data, dict):
-            data = {}
-        metadata = data.get("metadata", {})
-        if not isinstance(metadata, dict):
-            metadata = {}
-        return cls(
-            chat_id=data.get("chat_id", ""),
-            group=data.get("group", "Unknown"),
-            metadata=metadata,
-        )
-
-
-@dataclass
-class ChatMessage:
-    sender: str
-    message: str
-    timestamp: str
-    ransom_info: dict = field(default_factory=dict)
-
-    @classmethod
-    def from_dict(cls, data: Any) -> ChatMessage:
-        if not isinstance(data, dict):
-            data = {}
-        ransom_info = data.get("ransom_info", {})
-        if not isinstance(ransom_info, dict):
-            ransom_info = {}
-        return cls(
-            sender=data.get("sender", ""),
-            message=data.get("message", ""),
-            timestamp=data.get("timestamp", ""),
-            ransom_info=ransom_info,
-        )
-
-
-@dataclass
-class RansomNoteGroup:
-    group: str
-    note_count: int = 0
-
-    @classmethod
-    def from_dict(cls, data: Any) -> RansomNoteGroup:
-        if not isinstance(data, dict):
-            data = {}
-        return cls(
-            group=data.get("group", "Unknown"),
-            note_count=data.get("note_count", 0),
-        )
 
 
 @dataclass
@@ -362,7 +290,7 @@ class YaraGroup:
             data = {}
         return cls(
             group=data.get("group", "Unknown"),
-            rule_count=data.get("rule_count", 0),
+            rule_count=data.get("yara_count", 0),
         )
 
 
@@ -395,10 +323,15 @@ class Filing8K:
     def from_dict(cls, data: Any) -> Filing8K:
         if not isinstance(data, dict):
             data = {}
+        items = []
+        if data.get("item105"):
+            items.append("1.05")
+        if data.get("item801"):
+            items.append("8.01")
         return cls(
-            ticker=data.get("ticker", ""),
+            ticker=data.get("stockticker", ""),
             cik=data.get("cik", ""),
-            filing_date=data.get("filing_date", ""),
-            item_type=data.get("item_type", ""),
-            description=data.get("description", ""),
+            filing_date=data.get("file_date", ""),
+            item_type=", ".join(items),
+            description=data.get("company", ""),
         )

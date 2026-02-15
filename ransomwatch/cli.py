@@ -9,6 +9,7 @@ from typing import Optional
 from rich.console import Console
 
 from .api import RansomWatchAPI
+from .exceptions import RansomWatchError
 from .config import (
     DEFAULT_REQUESTS_PER_MINUTE,
     DEFAULT_REQUESTS_PER_SECOND,
@@ -53,7 +54,13 @@ class RansomWatchCLI:
                 "  ransomwatch stats\n"
                 "  ransomwatch validate\n"
                 "  ransomwatch sectors\n"
-                "  ransomwatch csirt --country US"
+                "  ransomwatch csirt --country US\n"
+                "  ransomwatch iocs\n"
+                "  ransomwatch iocs --group lockbit3\n"
+                "  ransomwatch yara\n"
+                "  ransomwatch yara --group akira\n"
+                "  ransomwatch victims --country US\n"
+                "  ransomwatch 8k --year 2025"
             ),
         )
 
@@ -97,6 +104,32 @@ class RansomWatchCLI:
         csirt_parser.add_argument('--country', type=str, required=True,
                                   help='ISO country code (e.g. US, DE)')
 
+        iocs_parser = subparsers.add_parser("iocs", help="Show indicators of compromise")
+        iocs_parser.add_argument('--group', type=str, default=None,
+                                 help='Filter by group name')
+        iocs_parser.add_argument('--type', type=str, default=None,
+                                 help='Filter by IOC type (e.g. md5, sha256, ip, url)')
+
+        yara_parser = subparsers.add_parser("yara", help="Show YARA detection rules")
+        yara_parser.add_argument('--group', type=str, default=None,
+                                 help='Filter by group name')
+
+        victims_parser = subparsers.add_parser("victims", help="List ransomware victims")
+        victims_parser.add_argument('--group', type=str, default=None,
+                                    help='Filter by group name')
+        victims_parser.add_argument('--country', type=str, default=None,
+                                    help='Filter by ISO country code')
+        victims_parser.add_argument('--sector', type=str, default=None,
+                                    help='Filter by sector')
+        victims_parser.add_argument('--year', type=int, default=None,
+                                    help='Filter by year')
+
+        filing_parser = subparsers.add_parser("8k", help="Show SEC 8-K cybersecurity filings")
+        filing_parser.add_argument('--ticker', type=str, default=None,
+                                   help='Filter by stock ticker')
+        filing_parser.add_argument('--year', type=int, default=None,
+                                   help='Filter by year')
+
         return parser
 
     def _validate_args(self, args) -> bool:
@@ -115,6 +148,12 @@ class RansomWatchCLI:
             return False
         if args.command == "recent":
             if not validate_limit(args.limit):
+                return False
+        if args.command in ("iocs", "yara", "victims") and getattr(args, "group", None):
+            if not validate_group_name(args.group):
+                return False
+        if args.command in ("victims", "csirt") and getattr(args, "country", None):
+            if not validate_country_code(args.country):
                 return False
         return True
 
@@ -135,10 +174,14 @@ class RansomWatchCLI:
         return api_token
 
     def _fetch(self, message: str, fetch_fn):
-        if self._show_status:
-            with self.console.status(f"[bold]{message}"):
-                return fetch_fn()
-        return fetch_fn()
+        try:
+            if self._show_status:
+                with self.console.status(f"[bold]{message}"):
+                    return fetch_fn()
+            return fetch_fn()
+        except RansomWatchError as e:
+            safe_log_error(str(e))
+            return None
 
     def run(self, args: Optional[list] = None) -> int:
         parsed_args = self.parser.parse_args(args)
@@ -192,6 +235,13 @@ class RansomWatchCLI:
             "validate": self._cmd_validate,
             "sectors": self._cmd_sectors,
             "csirt": lambda: self._cmd_csirt(args.country),
+            "iocs": lambda: self._cmd_iocs(getattr(args, "group", None), getattr(args, "type", None)),
+            "yara": lambda: self._cmd_yara(getattr(args, "group", None)),
+            "victims": lambda: self._cmd_victims(
+                getattr(args, "group", None), getattr(args, "country", None),
+                getattr(args, "sector", None), getattr(args, "year", None),
+            ),
+            "8k": lambda: self._cmd_8k(getattr(args, "ticker", None), getattr(args, "year", None)),
         }
 
         handler = commands.get(args.command)
@@ -270,6 +320,67 @@ class RansomWatchCLI:
         if data is None:
             return 1
         return self.logic.format_csirt(data)
+
+    def _cmd_iocs(self, group: Optional[str] = None, ioc_type: Optional[str] = None) -> int:
+        if self.logic is None or self.api is None:
+            safe_log_error("API or logic not initialized")
+            return 1
+        if group:
+            data = self._fetch(f"Fetching IOCs for {group}...", lambda: self.api.get_group_iocs(group, type=ioc_type))
+        else:
+            data = self._fetch("Fetching IOC groups...", lambda: self.api.get_ioc_groups(type=ioc_type))
+        if data is None:
+            return 1
+        return self.logic.format_iocs(data, group or "")
+
+    def _cmd_yara(self, group: Optional[str] = None) -> int:
+        if self.logic is None or self.api is None:
+            safe_log_error("API or logic not initialized")
+            return 1
+        if group:
+            data = self._fetch(f"Fetching YARA rules for {group}...", lambda: self.api.get_group_yara(group))
+        else:
+            data = self._fetch("Fetching YARA groups...", self.api.get_yara_groups)
+        if data is None:
+            return 1
+        return self.logic.format_yara(data, group or "")
+
+    def _cmd_victims(
+        self,
+        group: Optional[str] = None,
+        country: Optional[str] = None,
+        sector: Optional[str] = None,
+        year: Optional[int] = None,
+    ) -> int:
+        if self.logic is None or self.api is None:
+            safe_log_error("API or logic not initialized")
+            return 1
+        data = self._fetch("Fetching victims...", lambda: self.api.get_victims(
+            group=group, country=country, sector=sector, year=year,
+        ))
+        if data is None:
+            return 1
+        filters_parts = []
+        if group:
+            filters_parts.append(f"group={group}")
+        if country:
+            filters_parts.append(f"country={country}")
+        if sector:
+            filters_parts.append(f"sector={sector}")
+        if year:
+            filters_parts.append(f"year={year}")
+        return self.logic.format_victims_list(data, ", ".join(filters_parts))
+
+    def _cmd_8k(self, ticker: Optional[str] = None, year: Optional[int] = None) -> int:
+        if self.logic is None or self.api is None:
+            safe_log_error("API or logic not initialized")
+            return 1
+        data = self._fetch("Fetching SEC 8-K filings...", lambda: self.api.get_8k_filings(
+            ticker=ticker, year=year,
+        ))
+        if data is None:
+            return 1
+        return self.logic.format_8k(data)
 
 def main(args: Optional[list] = None) -> int:
     cli = RansomWatchCLI()

@@ -10,7 +10,7 @@ from .sanitization import (
     sanitize_exception_for_logging,
 )
 
-ALLOWED_COMMANDS: Set[str] = {"groups", "recent", "info", "stats", "validate", "sectors", "csirt"}
+ALLOWED_COMMANDS: Set[str] = {"groups", "recent", "info", "stats", "validate", "sectors", "csirt", "iocs", "yara", "victims", "8k"}
 ALLOWED_GROUP_NAME_CHARS = re.compile(r'^[a-z0-9\-]{1,50}$')
 MIN_TIMEOUT = 1
 MAX_TIMEOUT = 300

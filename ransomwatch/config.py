@@ -18,8 +18,6 @@ API_ENDPOINTS = {
     "victims_search": "/victims/search",
     "victim": "/victim",
     "iocs": "/iocs",
-    "negotiations": "/negotiations",
-    "ransomnotes": "/ransomnotes",
     "sectors": "/listsectors",
     "yara": "/yara",
     "8k": "/8k",
@@ -31,7 +29,7 @@ USER_AGENT = f"ransomwatch/{_version}"
 
 RETRY_TOTAL = 3
 RETRY_BACKOFF_FACTOR = 1
-RETRY_STATUS_FORCELIST = [500, 502, 503, 504]
+RETRY_STATUS_FORCELIST = [502, 503, 504]
 
 DEFAULT_REQUESTS_PER_MINUTE = 30
 DEFAULT_REQUESTS_PER_SECOND = 2

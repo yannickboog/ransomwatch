@@ -9,7 +9,19 @@ from rich.text import Text
 from rich.tree import Tree
 
 from ..config import MAX_DISPLAY_TECHNIQUES, MAX_DISPLAY_TTPS
-from ..models import CSIRT, RansomwareGroup, RiskLevel, Sector, Stats, Victim
+from ..models import (
+    CSIRT,
+    Filing8K,
+    IOC,
+    IOCGroup,
+    RansomwareGroup,
+    RiskLevel,
+    Sector,
+    Stats,
+    Victim,
+    YaraGroup,
+    YaraRule,
+)
 
 
 RISK_STYLES = {
@@ -80,19 +92,17 @@ class RichRenderer:
         table.add_column("Threat Actor", style="red")
         table.add_column("Date", width=12)
         table.add_column("Location", width=8)
-        table.add_column("Website", style="dim", max_width=25)
-        table.add_column("Details", max_width=40)
+        table.add_column("Details", max_width=50)
 
         for i, victim in enumerate(victims, 1):
             date_str = self._format_date(victim.discovered)
-            details = shorten(victim.description, width=40, placeholder="...")
+            details = shorten(victim.description, width=50, placeholder="...")
             table.add_row(
                 str(i),
                 victim.name,
                 victim.group,
                 date_str,
                 victim.country,
-                victim.website or "-",
                 details,
             )
 
@@ -228,6 +238,143 @@ class RichRenderer:
                 csirt.country,
                 csirt.email or "-",
                 csirt.website or "-",
+            )
+
+        self.console.print()
+        self.console.print(table)
+
+    def render_ioc_groups(self, ioc_groups: list[IOCGroup]) -> None:
+        sorted_groups = sorted(ioc_groups, key=lambda g: g.ioc_count, reverse=True)
+
+        table = Table(
+            title=f"INDICATORS OF COMPROMISE\nGroups with IOCs: {len(ioc_groups)}",
+            show_header=True,
+            header_style="bold",
+            title_style="bold",
+            border_style="dim",
+        )
+        table.add_column("#", style="dim", width=4, justify="right")
+        table.add_column("Group", style="bold")
+        table.add_column("IOC Count", justify="right")
+        table.add_column("Types", style="dim")
+
+        for i, group in enumerate(sorted_groups, 1):
+            types_str = ", ".join(group.ioc_types) if group.ioc_types else "-"
+            table.add_row(str(i), group.group, f"{group.ioc_count:,}", types_str)
+
+        self.console.print()
+        self.console.print(table)
+
+    def render_iocs(self, iocs: list[IOC], group: str = "") -> None:
+        title_suffix = f" - {group}" if group else ""
+        table = Table(
+            title=f"IOC DETAILS{title_suffix}\nIndicators: {len(iocs)}",
+            show_header=True,
+            header_style="bold",
+            title_style="bold",
+            border_style="dim",
+        )
+        table.add_column("#", style="dim", width=4, justify="right")
+        table.add_column("Type", style="bold", width=10)
+        table.add_column("Value", max_width=60)
+        table.add_column("Group", style="red")
+        table.add_column("Details", style="dim", max_width=30)
+
+        for i, ioc in enumerate(iocs, 1):
+            details = shorten(ioc.details, width=30, placeholder="...") if ioc.details else "-"
+            table.add_row(str(i), ioc.type, ioc.value, ioc.group, details)
+
+        self.console.print()
+        self.console.print(table)
+
+    def render_yara_groups(self, yara_groups: list[YaraGroup]) -> None:
+        sorted_groups = sorted(yara_groups, key=lambda g: g.rule_count, reverse=True)
+
+        table = Table(
+            title=f"YARA DETECTION RULES\nGroups with Rules: {len(yara_groups)}",
+            show_header=True,
+            header_style="bold",
+            title_style="bold",
+            border_style="dim",
+        )
+        table.add_column("#", style="dim", width=4, justify="right")
+        table.add_column("Group", style="bold")
+        table.add_column("Rules", justify="right")
+
+        for i, group in enumerate(sorted_groups, 1):
+            table.add_row(str(i), group.group, f"{group.rule_count:,}")
+
+        self.console.print()
+        self.console.print(table)
+
+    def render_yara_rules(self, rules: list[YaraRule], group: str = "") -> None:
+        title_suffix = f" - {group}" if group else ""
+        for i, rule in enumerate(rules, 1):
+            panel = Panel(
+                rule.content if rule.content else "[dim]No content available[/dim]",
+                title=f"[bold]YARA RULE {i}{title_suffix}: {rule.filename}[/bold]",
+                border_style="blue",
+                padding=(1, 2),
+            )
+            self.console.print()
+            self.console.print(panel)
+
+    def render_victims_list(self, victims: list[Victim], filters: str = "") -> None:
+        title_suffix = f"\nFilters: {filters}" if filters else ""
+        table = Table(
+            title=f"RANSOMWARE VICTIMS\nResults: {len(victims)}{title_suffix}",
+            show_header=True,
+            header_style="bold",
+            title_style="bold",
+            border_style="dim",
+        )
+        table.add_column("#", style="dim", width=4, justify="right")
+        table.add_column("Victim", style="bold", max_width=30)
+        table.add_column("Threat Actor", style="red")
+        table.add_column("Date", width=12)
+        table.add_column("Location", width=8)
+        table.add_column("Details", max_width=50)
+
+        for i, victim in enumerate(victims, 1):
+            date_str = self._format_date(victim.discovered)
+            details = shorten(victim.description, width=50, placeholder="...")
+            table.add_row(
+                str(i),
+                victim.name,
+                victim.group,
+                date_str,
+                victim.country,
+                details,
+            )
+
+        self.console.print()
+        self.console.print(table)
+        self.console.print(f"\n[bold]TOTAL: {len(victims)}[/bold]")
+
+    def render_8k_filings(self, filings: list[Filing8K]) -> None:
+        table = Table(
+            title=f"SEC 8-K FILINGS (Cybersecurity Incidents)\nFilings: {len(filings)}",
+            show_header=True,
+            header_style="bold",
+            title_style="bold",
+            border_style="dim",
+        )
+        table.add_column("#", style="dim", width=4, justify="right")
+        table.add_column("Ticker", style="bold", width=8)
+        table.add_column("CIK", style="dim", width=12)
+        table.add_column("Filing Date", width=12)
+        table.add_column("Item", width=10)
+        table.add_column("Description", max_width=50)
+
+        for i, filing in enumerate(filings, 1):
+            desc = shorten(filing.description, width=50, placeholder="...") if filing.description else "-"
+            table.add_row(
+                str(i),
+                filing.ticker or "-",
+                filing.cik or "-",
+                filing.filing_date or "-",
+                filing.item_type or "-",
+                desc,
             )
 
         self.console.print()
