@@ -1,3 +1,5 @@
+
+
 # ransomwatch - Ransomware Intelligence Tool
 
 A Python tool for ransomware threat intelligence and security research.
@@ -46,7 +48,7 @@ Get your API token from [ransomware.live](https://www.ransomware.live).
 | `yara` | Show YARA detection rules | `ransomwatch yara --group Akira` |
 | `8k` | Show SEC 8-K cybersecurity filings | `ransomwatch 8k --year 2025` |
 
-All commands support `--json` for machine-readable output and `--verbose` for debug logging. See `ransomwatch --help` for all options.
+All commands support `--json` for machine-readable output and `--verbose` for debug logging when provided before the command (for example: `ransomwatch --json groups`). See `ransomwatch --help` for all options.
 
 ## Installation
 
